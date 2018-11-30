@@ -26,6 +26,8 @@
 		:style="avatarStyle"
 		class="avatardiv popovermenu-wrapper" @click="toggleMenu">
 		<img v-if="!loadingState && !userDoesNotExist" :src="avatarUrlLoaded" :srcset="avatarSrcSetLoaded">
+		<div v-if="status" class="avatardiv__status" :class="'avatardiv__status--' + status"
+			:style="statusStyle" />
 		<div v-if="userDoesNotExist" class="unknown">
 			{{ initials }}
 		</div>
@@ -120,6 +122,27 @@ export default {
 		isNoUser: {
 			type: Boolean,
 			default: false
+		},
+
+		status: {
+			type: String,
+			default: null,
+			validator: (value) => {
+				switch (value) {
+				case 'positive':
+				case 'negative':
+				case 'medium':
+					return true
+				}
+				return false
+			}
+		},
+		statusColor: {
+			type: (Number|String),
+			default: null,
+			validator: value => {
+				return /^#?([a-f0-9]{3}){1,2}$/i.test(value)
+			}
 		}
 	},
 	data() {
@@ -170,6 +193,13 @@ export default {
 			const rgb = uidToColor(this.getUserIdentifier)
 			style.backgroundColor = 'rgb(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ')'
 			return style
+		},
+		statusStyle() {
+			return {
+				backgroundColor: this.statusColor.startsWith('#')
+					? this.statusColor
+					: `#${this.statusColor}`
+			}
 		},
 		tooltip() {
 			if (this.disableTooltip) {
@@ -288,39 +318,61 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 	.avatardiv {
 		display: inline-block;
-	}
-
-	.avatardiv.unknown {
-		background-color: var(--color-text-maxcontrast);
 		position: relative;
-	}
 
-	.avatardiv > .unknown {
-		position: absolute;
-		color: var(--color-main-background);
-		width: 100%;
-		text-align: center;
-		display: block;
-		left: 0;
-		top: 0;
-	}
+		&.unknown {
+			background-color: var(--color-text-maxcontrast);
+			position: relative;
+		}
 
-	.avatardiv img {
-		width: 100%;
-		height: 100%;
-	}
+		> .unknown {
+			position: absolute;
+			color: var(--color-main-background);
+			width: 100%;
+			text-align: center;
+			display: block;
+			left: 0;
+			top: 0;
+		}
 
-	.popovermenu-wrapper {
-		position: relative;
-		display: inline-block;
-	}
+		img {
+			width: 100%;
+			height: 100%;
+		}
 
-	.popovermenu {
-		display: block;
-		margin: 0;
-		font-size: initial;
+		.avatardiv__status {
+			width: 10px;
+			height: 10px;
+			position: absolute;
+			left: 22px;
+			top: 22px;
+			border: 1px solid rgba(255, 255, 255, .5);
+			background-clip: content-box;
+			&--positive {
+				background-color: var(--color-success);
+			}
+			&--negative {
+				background-color: var(--color-error);
+				border-radius: 50%;
+			}
+			&--medium {
+				background-color: var(--color-warning);
+				border-radius: 3px;
+			}
+		}
+
+		.popovermenu-wrapper {
+			position: relative;
+			display: inline-block;
+		}
+
+		.popovermenu {
+			display: block;
+			margin: 0;
+			font-size: initial;
+		}
 	}
 </style>
